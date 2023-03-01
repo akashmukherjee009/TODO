@@ -4,13 +4,15 @@
   "description": "This is a basic todo list using pern",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon my_file.js"
   },
   "author": "Akash",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "nodemon": "^2.0.20",
     "pg": "^8.9.0"
   }
 }
