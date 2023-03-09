@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const pool = require("./db");
+const bcrypt = require("bcrypt");
+const jwtGenerator = require("./utils/jwtGenerator");
+
 
 //middleware
 app.use(cors());
@@ -29,7 +32,7 @@ app.post("/todos", async (req, res) => {
 
 app.get("/todos", async (req, res) => {
   try {
-    const allTodos = await pool.query("SELECT * FROM todo");
+    const allTodos = await pool.query("SELECT * FROM todo order by id");
     res.json(allTodos.rows);
   } catch (err) {
     console.error(err.message);
@@ -81,6 +84,66 @@ app.delete("/todos/:id", async (req, res) => {
     console.log(err.message);
   }
 });
+
+//Register user
+app.post("/register", async (req,res)=>{
+  try {
+    const {email, password}= req.body
+    const checkUser= await pool.query("select * from user_details where user_email= $1",[email])
+    // console.log(createUser);
+    if (checkUser.rows.length > 0) {
+      return res.status(401).send("Email already used!!!!!!!!!")
+
+    } 
+    // res.json(req.body)
+    const saltRound= 10
+    const salt= await bcrypt.genSalt(saltRound)
+    const bcryptPassword= await bcrypt.hash(password, salt)
+    let createUser= await pool.query("INSERT INTO user_details(user_email, user_pass) values ($1,$2) returning *",[email, bcryptPassword])
+    // res.json(createUser.rows[0])
+    const token= jwtGenerator(createUser.rows[0].user_id)
+    res.json({token})
+    
+    // res.json(createUser.rows)
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+})
+//Login 
+app.post("/login",async(req,res)=>{
+  try { 
+    const {email,password}= req.body
+    const user= await pool.query("select * from user_details where user_email= $1",[email])
+    if (user.rows.length==0) {
+      return res.status(401).send("Incorrect email and password!!!!!!!!!")
+    }
+    const validPassword= await bcrypt.compare(password,user.rows[0].user_pass)
+    console.log(validPassword);
+
+    if (!validPassword) {
+      return res.status(401).send("Incorrect email and password!!!!!!!!!")
+    }
+    const token= jwtGenerator(user.user_id)
+    return res.json({ token });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+    
+  }
+})
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.listen(5000, () => {
   console.log("server has started on port 5000");

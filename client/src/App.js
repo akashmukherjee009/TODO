@@ -1,17 +1,23 @@
 import React, { Fragment } from "react";
-
+import {BrowserRouter, Route, Routes} from 'react-router-dom'
 //components
-
-import InputTodo from "./components/InputTodo";
-import ListTodos from "./components/ListTodo";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
   return (
     <Fragment>
-      <div className="container">
-        <InputTodo />
-        <ListTodos />
-      </div>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home/>}>
+            <Route path="register" element={<Register />} />
+            <Route path="login" element={<Login />} />
+            
+          </Route>
+        </Routes>
+      </BrowserRouter>
+      
     </Fragment>
   );
 }
